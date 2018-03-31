@@ -88,7 +88,137 @@ public abstract class Critter {
 	
 	private int x_coord;	//determines critter's location on map
 	private int y_coord;	//determines critter's location on map
-	
+
+	/**
+	 * return string of critter at location specified by direction and steps
+	 * @param direction direction to look in
+	 * @param steps number steps to look ahead
+	 * @return string of character at specified location
+	 */
+	protected String look(int direction, boolean steps) {
+		this.energy -= Params.look_energy_cost;
+		this.deadToRemove = true;
+		Critter helper = new Algae();
+		helper.x_coord = this.x_coord;
+		helper.y_coord = this.y_coord;
+		Coordinate locToLook = helper.getNewLocToLook(direction);
+		if(steps) {	//if two steps, call again
+			helper.x_coord = locToLook.x_coord;
+			helper.y_coord = locToLook.y_coord;
+			locToLook = helper.getNewLocToLook(direction);
+		}
+		if(countNumAliveAtLocation(locToLook) > 0) {	//if there is an alive critter at that location, return appropriate to string
+			Critter livingCritter = aliveCritAtLoc(locToLook);
+			return livingCritter.toString();
+		}
+		return null;
+	}
+
+	/**
+	 * get alive critter at specified location
+	 * @param coord location to look in
+	 * @return the actual critter at that location
+	 */
+	private Critter aliveCritAtLoc(Coordinate coord) {
+		ArrayList<Critter> critterAtLoc = critterAtLocMap.get(coord);
+		for(int i = 0; i < critterAtLoc.size(); i++) {
+			if(!(critterAtLoc.get(i).deadToRemove) && critterAtLoc.get(i).energy > 0) {	//if the critter is  alive
+				if(!(critterAtLoc.get(i) instanceof Algae)) {	//don't count newly created algae
+					return critterAtLoc.get(i);
+				}
+			}
+		}
+		System.err.println("aliveCritAtLoc didn't find correct alive critter");
+		return null;
+	}
+
+
+
+	/**
+	 * getNewLoc returns new Coordinate based on direction and num steps
+	 * @param direction direction to look in
+	 * @return
+	 */
+	private Coordinate getNewLocToLook(int direction) {
+		Coordinate newLoc = new Coordinate(-1, -1);
+		if(direction == 0) {
+			if(this.x_coord == Params.world_width - 1) {	//to wrap aroun
+				newLoc.x_coord = 0;
+			} else {
+				newLoc.x_coord = this.x_coord++;
+			}
+			newLoc.y_coord = this.y_coord;
+		} else if(direction == 1) {
+			if(this.x_coord == Params.world_width - 1) {
+				newLoc.x_coord = 0;
+			} else {
+				newLoc.x_coord++;
+			}
+			if(this.y_coord == 0) {
+				newLoc.y_coord = Params.world_height - 1;
+			} else {
+				newLoc.y_coord--;
+			}
+		} else if(direction == 2) {
+			if(this.y_coord == 0) {
+				newLoc.y_coord = Params.world_height - 1;
+			} else {
+				newLoc.y_coord--;
+			}
+			newLoc.x_coord = this.x_coord;
+		} else if(direction == 3) {
+			if(this.x_coord == 0) {
+				newLoc.x_coord = Params.world_width - 1;
+			} else {
+				newLoc.x_coord--;
+			}
+			if(this.y_coord == 0) {
+				newLoc.y_coord = Params.world_height - 1;
+			} else {
+				newLoc.y_coord--;
+			}
+		} else if(direction == 4) {
+			if(this.x_coord == 0) {
+				newLoc.x_coord = Params.world_width - 1;
+			} else {
+				newLoc.x_coord--;
+			}
+			newLoc.y_coord = this.y_coord;
+		} else if(direction == 5) {
+			if(this.x_coord == 0) {
+				newLoc.x_coord = Params.world_width - 1;
+			} else {
+				newLoc.x_coord--;
+			}
+			if(this.y_coord == Params.world_height - 1) {
+				newLoc.y_coord = 0;
+			} else {
+				newLoc.y_coord++;
+			}
+		} else if(direction == 6) {
+			if(this.y_coord == Params.world_height - 1) {
+				newLoc.y_coord = 0;
+			} else {
+				newLoc.y_coord++;
+			}
+			newLoc.x_coord = this.x_coord;
+		} else if(direction == 7) {
+			if(this.x_coord == Params.world_width - 1) {
+				newLoc.x_coord = 0;
+			} else {
+				newLoc.x_coord++;
+			}
+			if(this.y_coord == Params.world_height - 1) {
+				newLoc.y_coord = 0;
+			} else {
+				newLoc.y_coord++;
+			}
+		}
+		if(newLoc.x_coord == -1 || newLoc.y_coord == -1) {
+			System.err.println("issue w looking corrdinate");
+		}
+		return newLoc;
+	}
 	/**
 	 * allows Critter to move around grid
 	 * @param direction specifies the direction the critter is taking a step in
